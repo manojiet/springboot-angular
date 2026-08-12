@@ -5,9 +5,30 @@ A User Management application built with a Spring Boot REST API, a PostgreSQL da
 ## Tech stack
 
 - **Frontend:** Angular 22 (standalone components, zoneless change detection with signals), nginx
-- **Backend:** Spring Boot (Java 21), Spring Data JPA, Flyway migrations, bean validation
-- **Database:** PostgreSQL 15
-- **Packaging:** Multi-stage Docker builds for backend and frontend
+- **Backend:** Spring Boot (Java 21), Spring Data JPA, Hibernate (schema managed by `ddl-auto`), bean validation
+- **Database:** PostgreSQL 15 (H2 in-memory for local backend-only runs)
+- **Packaging:** Multi-stage Docker builds for backend and frontend, orchestrated with Docker Compose
+
+## Architecture
+
+![Architecture diagram](docs/architecture-diagram.png)
+
+```mermaid
+graph TD
+  U[User - Browser] -->|HTTP :4200| N[Nginx reverse proxy]
+  N -->|serves static bundle| A[Angular 22 SPA<br/>signals · zoneless]
+  N -->|/api/* proxied| B[Spring Boot 4 REST API<br/>/api/v1/users]
+  B --> C[UserService - business logic]
+  C --> D[UserRepository - Spring Data JPA]
+  D --> E[Hibernate ORM]
+  E -->|JDBC :5432| P[(PostgreSQL 15<br/>userdb)]
+  P --> V[(Volume: db-data)]
+  subgraph Docker Compose
+    N
+    B
+    P
+  end
+```
 
 ## Project structure
 
